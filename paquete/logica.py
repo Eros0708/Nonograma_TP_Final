@@ -1,49 +1,47 @@
 import os
 import random
 
-import os
-import random
-
-def elegir_nonograma_random(ruta_categoria):
-    archivos = os.listdir(ruta_categoria)
-    elegido = random.choice(archivos)
-    ruta_completa = ruta_categoria + elegido
-    return ruta_completa
-
-
-
-def comparar_nonogramas(nonograma_jugador, nonograma_resuelto):
-    for i in range(len(nonograma_resuelto)):
-        for j in range(len(nonograma_resuelto[i])):
-
-            
-            if nonograma_resuelto[i][j] == 1:
-                if nonograma_jugador[i][j] != 1:
-                    return False
-
-          
-            else:
-                if nonograma_jugador[i][j] == 1:
-                    return False
-
-    return True
-
-
-def cambiar_estado(nonograma_jugador, fila, columna):
-    valor = nonograma_jugador[fila][columna]
-    valor = valor + 1
-    if valor > 2:
-        valor = 0
-    nonograma_jugador[fila][columna] = valor
+def cargar_nonograma_csv(ruta):
+    nonograma_resuelto = []
+    with open(ruta, "r") as archivo:
+        for linea in archivo:
+            fila = list(map(int, linea.strip().split(",")))
+            nonograma_resuelto.append(fila)
+    return nonograma_resuelto
 
 def crear_nonograma_jugador(filas, columnas):
     nonograma_jugador = []
     for i in range(filas):
         fila = []
         for j in range(columnas):
-            fila.append(0) 
+            fila.append(0)
         nonograma_jugador.append(fila)
     return nonograma_jugador
+
+def cambiar_estado(nonograma_jugador, fila, columna, estado):
+    nonograma_jugador[fila][columna] = estado
+
+def comparar_nonogramas(jugador, resuelto):
+    for i in range(len(resuelto)):
+        for j in range(len(resuelto[i])):
+            if resuelto[i][j] == 1 and jugador[i][j] != 1:
+                return False
+            if resuelto[i][j] == 0 and jugador[i][j] == 1:
+                return False
+    return True
+
+def elegir_nonograma_random(ruta_categoria):
+    archivos = os.listdir(ruta_categoria)
+    elegido = random.choice(archivos)
+    return ruta_categoria + elegido
+
+def iniciar_partida(ruta):
+    resuelto = cargar_nonograma_csv(ruta)
+    filas = len(resuelto)
+    columnas = len(resuelto[0])
+    jugador = crear_nonograma_jugador(filas, columnas)
+    return jugador, resuelto
+
 
 
 

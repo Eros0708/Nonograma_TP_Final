@@ -1,0 +1,9 @@
+ANCHO = 800
+ALTO = 600
+
+BLANCO = (255, 255, 255)
+NEGRO = (0, 0, 0)
+GRIS = (200, 200, 200)
+ROJO = (255, 0, 0)
+
+TAM_FUENTE = 32
