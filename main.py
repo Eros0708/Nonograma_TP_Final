@@ -24,9 +24,14 @@ def menu_principal():
     while activo:
         ventana.fill(BLANCO)
 
-        boton_jugar = pygame.Rect(300, 150, 200, 60)
-        boton_ranking = pygame.Rect(300, 250, 200, 60)
-        boton_salir = pygame.Rect(300, 350, 200, 60)
+        boton_jugar = pygame.Rect(0, 0, 200,  60)
+        boton_ranking = pygame.Rect(0, 10, 200, 60)
+        boton_salir = pygame.Rect(0, 10, 200, 60)
+
+        
+        boton_jugar.center = (ANCHO // 2, ALTO // 2 - 120)
+        boton_ranking.center = (ANCHO // 2, ALTO // 2)
+        boton_salir.center = (ANCHO // 2, ALTO // 2 + 120)
 
         dibujar_boton(ventana, boton_jugar, "Jugar", font, GRIS, NEGRO)
         dibujar_boton(ventana, boton_ranking, "Ranking", font, GRIS, NEGRO)
@@ -49,6 +54,7 @@ def menu_principal():
         pygame.display.update()
 
 
+
 # ---------------------------------------------------------
 #  MENÚ DE DIFICULTAD
 # ---------------------------------------------------------
@@ -57,13 +63,18 @@ def menu_dificultad():
     while activo:
         ventana.fill(BLANCO)
 
-        b1 = pygame.Rect(300, 150, 200, 60)
-        b2 = pygame.Rect(300, 250, 200, 60)
-        b3 = pygame.Rect(300, 350, 200, 60)
+        boton_facil = pygame.Rect(0, 0, 200, 60)
+        boton_medio = pygame.Rect(0, 0, 200, 60)
+        boton_dificil = pygame.Rect(0, 0, 200, 60)
 
-        dibujar_boton(ventana, b1, "Fácil", font, GRIS, NEGRO)
-        dibujar_boton(ventana, b2, "Medio", font, GRIS, NEGRO)
-        dibujar_boton(ventana, b3, "Difícil", font, GRIS, NEGRO)
+        # Centrado
+        boton_facil.center = (ANCHO // 2, ALTO // 2 - 120)
+        boton_medio.center = (ANCHO // 2, ALTO // 2)
+        boton_dificil.center = (ANCHO // 2, ALTO // 2 + 120)
+
+        dibujar_boton(ventana, boton_facil, "Fácil", font, GRIS, NEGRO)
+        dibujar_boton(ventana, boton_medio, "Medio", font, GRIS, NEGRO)
+        dibujar_boton(ventana, boton_dificil, "Difícil", font, GRIS, NEGRO)
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -71,19 +82,19 @@ def menu_dificultad():
                 exit()
 
             if evento.type == pygame.MOUSEBUTTONDOWN:
-                if b1.collidepoint(evento.pos):
+                if boton_facil.collidepoint(evento.pos):
                     iniciar_juego(RUTA_FACIL)
-                if b2.collidepoint(evento.pos):
+                if boton_medio.collidepoint(evento.pos):
                     iniciar_juego(RUTA_MEDIO)
-                if b3.collidepoint(evento.pos):
+                if boton_dificil.collidepoint(evento.pos):
                     iniciar_juego(RUTA_DIFICIL)
 
         pygame.display.update()
 
 
-# ---------------------------------------------------------
-#  JUEGO
-# ---------------------------------------------------------
+
+
+
 def iniciar_juego(ruta_carpeta):
     ruta = elegir_nonograma_random(ruta_carpeta)
     jugador, resuelto = iniciar_partida(ruta)
@@ -91,7 +102,18 @@ def iniciar_juego(ruta_carpeta):
     filas = len(resuelto)
     columnas = len(resuelto[0])
 
-    TAM_CELDA = min(ANCHO // columnas, ALTO // filas)
+    
+    TAM_CELDA = min(
+        (ANCHO - PADDING_IZQ - PADDING_DER) // columnas,
+        (ALTO - PADDING_SUP - PADDING_INF) // filas
+    )
+
+
+    offset_x = PADDING_IZQ
+    offset_y = PADDING_SUP
+
+   
+    pistas_filas, pistas_columnas = calcular_pistas(resuelto)
 
     activo = True
     while activo:
@@ -104,10 +126,13 @@ def iniciar_juego(ruta_carpeta):
 
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 x, y = evento.pos
-                fila = y // TAM_CELDA
-                columna = x // TAM_CELDA
 
-                if fila < filas and columna < columnas:
+                if offset_x <= x < offset_x + columnas*TAM_CELDA and \
+                   offset_y <= y < offset_y + filas*TAM_CELDA:
+
+                    fila = (y - offset_y) // TAM_CELDA
+                    columna = (x - offset_x) // TAM_CELDA
+
                     if evento.button == 1:
                         cambiar_estado(jugador, fila, columna, 1)
                     elif evento.button == 3:
@@ -117,11 +142,13 @@ def iniciar_juego(ruta_carpeta):
                         print("¡Ganaste!")
                         return
 
-        dibujar_tablero(ventana, jugador, TAM_CELDA, filas, columnas)
+        dibujar_tablero(ventana, jugador, TAM_CELDA, filas, columnas, offset_x, offset_y)
+        dibujar_pistas(ventana, font, pistas_filas, pistas_columnas, TAM_CELDA, offset_x, offset_y)
+
         pygame.display.update()
 
 
-# ---------------------------------------------------------
+
 menu_principal()
 
 

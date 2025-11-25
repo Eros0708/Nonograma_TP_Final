@@ -43,6 +43,52 @@ def iniciar_partida(ruta):
     return jugador, resuelto
 
 
+def calcular_pistas(nonograma):
+    filas = len(nonograma)
+    columnas = len(nonograma[0])
+
+    pistas_filas = []
+    pistas_columnas = []
+
+
+    for fila in nonograma:
+        pistas = []
+        contador = 0
+        for celda in fila:
+            if celda == 1:
+                contador += 1
+            else:
+                if contador > 0:
+                    pistas.append(contador)
+                contador = 0
+        if contador > 0:
+            pistas.append(contador)
+
+        if pistas == []:
+            pistas = [0]
+
+        pistas_filas.append(pistas)
+
+
+    for col in range(columnas):
+        pistas = []
+        contador = 0
+        for fila in range(filas):
+            if nonograma[fila][col] == 1:
+                contador += 1
+            else:
+                if contador > 0:
+                    pistas.append(contador)
+                contador = 0
+        if contador > 0:
+            pistas.append(contador)
+
+        if pistas == []:
+            pistas = [0]
+
+        pistas_columnas.append(pistas)
+
+    return pistas_filas, pistas_columnas
 
 
 
