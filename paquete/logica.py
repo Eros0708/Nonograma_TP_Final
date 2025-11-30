@@ -179,6 +179,8 @@ def controlar_error(jugador, resuelto, fila, columna):
 
 
 
+
+
     
 
         

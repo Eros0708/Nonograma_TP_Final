@@ -2,6 +2,7 @@ import pygame
 from paquete.config import *
 
 
+
 def render_texto(texto, font, color):
     """_summary_
 
@@ -107,12 +108,115 @@ def dibujar_pistas(ventana, font, pistas_filas, pistas_columnas, tam, offset_x, 
                 offset_y - (len(lineas) * img.get_height()) - 10 + idx * img.get_height()
             ))
 
-def mostrar_game_over(ventana, font):
+def mostrar_game_over(ventana, font_game_over, calavera_img):
+    """_summary_
+
+    Args:
+        ventana (_type_): _description_
+        font_game_over (_type_): _description_
+        calavera_img (_type_): _description_
+    """
     ventana.fill(NEGRO)
-    texto = font.render("GAME OVER", True, ROJO)
-    rect = texto.get_rect(center=(ANCHO // 2, ALTO // 2))
+    ventana.blit(calavera_img, (250, 400))
+    texto = font_game_over.render("GAME OVER", True, ROJO)
+    rect = texto.get_rect(center=(ANCHO // 2, ALTO // 2 - 200))
     ventana.blit(texto, rect)
     pygame.display.update()
-    pygame.time.delay(2000)
+    pygame.time.delay(3000)
+    
+def dibujar_corazones(ventana, corazon_img, vidas):
+    """_summary_
+
+    Args:
+        ventana (_type_): _description_
+        corazon_img (_type_): _description_
+        vidas (_type_): _description_
+    """
+    
+    for i in range(vidas):
+        
+        ventana.blit(corazon_img, (600 + i * 60, 0))
+
+def pedir_nombre(ventana, font):
+    """_summary_
+
+    Args:
+        ventana (_type_): _description_
+        font (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    nombre = ""
+    activo = True
+
+    while activo:
+        ventana.fill(BLANCO)
+
+        texto = font.render("Ingresa tu nombre:", True, NEGRO)
+        ventana.blit(texto, (200, 200))
+
+        
+        cuadro = pygame.Rect(200, 300, 400, 50)
+        pygame.draw.rect(ventana, NEGRO, cuadro, 2)
+
+        texto_nombre = font.render(nombre, True, NEGRO)
+        ventana.blit(texto_nombre, (210, 310))
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_RETURN:
+                    if nombre.strip() != "":
+                        return nombre
+
+                elif evento.key == pygame.K_BACKSPACE:
+                    nombre = nombre[:-1]
+
+                else:
+                    if len(nombre) < 15:  
+                        nombre += evento.unicode
+
+        pygame.display.update()
 
     
+
+def mostrar_ranking(ventana, font, ranking):
+    activo = True
+    while activo:
+        ventana.fill(BLANCO)
+
+        titulo = font.render("RANKING", True, NEGRO)
+        ventana.blit(titulo, (330, 50))
+
+        y = 150
+        for entrada in ranking[:10]:
+            linea = f"{entrada['nombre']} - {entrada['nonograma']} - {entrada['tiempo']}s"
+            texto = font.render(linea, True, NEGRO)
+            ventana.blit(texto, (50, y))
+            y += 40
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_ESCAPE:
+                    return
+
+        pygame.display.update()
+
+
+    
+def mostrar_victoria(ventana, font_victoria):
+    
+    ventana.fill(VERDE)
+    
+    texto = font_victoria.render("GANASTE", True, AMARILLO)
+    rect = texto.get_rect(center=(ANCHO // 2, ALTO // 2 - 200))
+    ventana.blit(texto, rect)
+    pygame.display.update()
+    pygame.time.delay(3000)

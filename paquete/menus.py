@@ -4,20 +4,31 @@ from paquete.logica import *
 from paquete.interfaz import *
 from paquete.manejo_archivos import *
 
+
+
 pygame.init()
 ventana = pygame.display.set_mode((ANCHO, ALTO))
 pygame.display.set_caption("Nonograma")
 font = pygame.font.SysFont(None, TAM_FUENTE)
+font_game_over = pygame.font.SysFont(None, FONT_GRANDE)
+font_victoria = pygame.font.SysFont(None, FONT_GRANDE)
 
 RUTA_FACIL = "nonogramas/facil/"
 RUTA_MEDIO = "nonogramas/medio/"
 RUTA_DIFICIL = "nonogramas/dificil/"
 
 
-def menu_principal():
+def menu_principal(sonidos):
+
+    
     activo = True
     while activo:
         ventana.fill(BLANCO)
+        sonidos["fondo"].set_volume(0.1)  
+        sonidos["fondo"].play(-1)  
+
+
+
 
         boton_jugar = pygame.Rect(0, 0, 200, 60)
         boton_ranking = pygame.Rect(0, 0, 200, 60)
@@ -38,9 +49,11 @@ def menu_principal():
 
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 if boton_jugar.collidepoint(evento.pos):
-                    menu_dificultad()
+                    mostrar_menu_dificultad(sonidos)
                 if boton_ranking.collidepoint(evento.pos):
-                    print("Ranking todavía no implementado.")
+                    ranking = cargar_ranking()
+                    ranking = ordenar_ranking(ranking)
+                    mostrar_ranking(ventana, font, ranking)
                 if boton_salir.collidepoint(evento.pos):
                     pygame.quit()
                     exit()
@@ -48,7 +61,7 @@ def menu_principal():
         pygame.display.update()
 
 
-def menu_dificultad():
+def mostrar_menu_dificultad(sonidos):
     activo = True
     while activo:
         ventana.fill(BLANCO)
@@ -72,18 +85,45 @@ def menu_dificultad():
 
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 if boton_facil.collidepoint(evento.pos):
-                    iniciar_juego(RUTA_FACIL)
+                    resultado = iniciar_juego(RUTA_FACIL, sonidos)
+                    nombre, tiempo, ruta_nonograma = resultado
+                    ranking = cargar_ranking()
+                    ranking = agregar_entrada(ranking, nombre, ruta_nonograma, tiempo)
+                    ranking = ordenar_ranking(ranking)
+                    guardar_ranking(ranking)
+    
                 if boton_medio.collidepoint(evento.pos):
-                    iniciar_juego(RUTA_MEDIO)
+                    resultado = iniciar_juego(RUTA_FACIL, sonidos)
+                    nombre, tiempo, ruta_nonograma = resultado
+                    ranking = cargar_ranking()
+                    ranking = agregar_entrada(ranking, nombre, ruta_nonograma, tiempo)
+                    ranking = ordenar_ranking(ranking)
+                    guardar_ranking(ranking)
+                    
                 if boton_dificil.collidepoint(evento.pos):
-                    iniciar_juego(RUTA_DIFICIL)
-
+                    resultado = iniciar_juego(RUTA_FACIL, sonidos)
+                    nombre, tiempo, ruta_nonograma = resultado
+                    ranking = cargar_ranking()
+                    ranking = agregar_entrada(ranking, nombre, ruta_nonograma, tiempo)
+                    ranking = ordenar_ranking(ranking)
+                    guardar_ranking(ranking)
+    
+                    
         pygame.display.update()
-
-
-def iniciar_juego(ruta_carpeta):
+                
+    
+                                    
+def iniciar_juego(ruta_carpeta, sonidos):
+    nombre_juagor = pedir_nombre(ventana, font)
     ruta = elegir_nonograma_random(ruta_carpeta)
     jugador, resuelto = iniciar_partida(ruta)
+    
+    tiempo_inicio = pygame.time.get_ticks()
+    corazon_img = pygame.image.load("paquete/imagenes/vida.png")
+    corazon_img = pygame.transform.scale(corazon_img, (60, 60)) 
+    calavera_img = pygame.image.load("paquete/imagenes/calavera.png")
+    calavera_img = pygame.transform.scale(calavera_img, (300, 300))
+
 
     filas = len(resuelto)
     columnas = len(resuelto[0])
@@ -108,6 +148,7 @@ def iniciar_juego(ruta_carpeta):
     activo = True
     while activo:
         ventana.fill(BLANCO)
+        dibujar_corazones(ventana, corazon_img, vidas)
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -117,8 +158,8 @@ def iniciar_juego(ruta_carpeta):
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 x, y = evento.pos
 
-                if offset_x <= x < offset_x + columnas*TAM_CELDA and \
-                   offset_y <= y < offset_y + filas*TAM_CELDA:
+                if offset_x <= x < offset_x + columnas * TAM_CELDA and \
+                   offset_y <= y < offset_y + filas * TAM_CELDA:
 
                     fila = (y - offset_y) // TAM_CELDA
                     columna = (x - offset_x) // TAM_CELDA
@@ -132,7 +173,7 @@ def iniciar_juego(ruta_carpeta):
 
                    
                     if controlar_error(jugador, resuelto, fila, columna):
-                        print("Error cometido. Tienes 3 segundos para corregirlo.")
+                    
                         error_en_revision = True
                         tiempo_error = pygame.time.get_ticks()
                         fila_error = fila
@@ -140,26 +181,30 @@ def iniciar_juego(ruta_carpeta):
 
                     
                     if comparar_nonogramas(jugador, resuelto):
-                        print("¡Ganaste!")
-                        return
+                        tiempo_total = (pygame.time.get_ticks() - tiempo_inicio) // 1000
+                        sonidos["victoria"].play()
+                        mostrar_victoria(ventana, font_victoria)
+                        return nombre_juagor, tiempo_total, ruta
 
        
         if error_en_revision:
 
             
             if not controlar_error(jugador, resuelto, fila_error, columna_error):
-                print("Error corregido a tiempo.")
+                
                 error_en_revision = False
 
             else:
                 
                 if pygame.time.get_ticks() - tiempo_error >= 3000:
                     vidas -= 1
-                    print(f"Vida perdida. Vidas restantes: {vidas}")
+                    sonidos["perder_vida"].play()
+                    
 
                     
                     if vidas == 0:
-                        mostrar_game_over(ventana, font)
+                        sonidos["game_over"].play()
+                        mostrar_game_over(ventana, font_game_over, calavera_img)
                         return
 
                    
@@ -173,6 +218,11 @@ def iniciar_juego(ruta_carpeta):
                        TAM_CELDA, offset_x, offset_y)
 
         pygame.display.update()
+                
+
+
+        
+        
 
                                
                                
