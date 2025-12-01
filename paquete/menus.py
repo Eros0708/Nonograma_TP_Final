@@ -9,9 +9,10 @@ from paquete.manejo_archivos import *
 pygame.init()
 ventana = pygame.display.set_mode((ANCHO, ALTO))
 pygame.display.set_caption("Nonograma")
-font = pygame.font.SysFont(None, TAM_FUENTE)
-font_game_over = pygame.font.SysFont(None, FONT_GRANDE)
-font_victoria = pygame.font.SysFont(None, FONT_GRANDE)
+fuente_principal = pygame.font.Font("paquete/fuentes/orbitron.ttf", TAM_FUENTE)
+font_game_over = pygame.font.Font("paquete/fuentes/orbitron.ttf", FONT_GRANDE)
+font_victoria = pygame.font.Font("paquete/fuentes/orbitron.ttf", FONT_GRANDE)
+font_titulo = pygame.font.Font("paquete/fuentes/orbitron.ttf", 60)
 
 RUTA_FACIL = "nonogramas/facil/"
 RUTA_MEDIO = "nonogramas/medio/"
@@ -20,15 +21,17 @@ RUTA_DIFICIL = "nonogramas/dificil/"
 
 def menu_principal(sonidos):
 
-    
+    if not pygame.mixer.music.get_busy():
+        pygame.mixer.music.load("paquete/musica/ambiente.mp3")
+        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.play(-1)
+
     activo = True
     while activo:
-        ventana.fill(BLANCO)
-        sonidos["fondo"].set_volume(0.1)  
-        sonidos["fondo"].play(-1)  
-
-
-
+        ventana.fill(GRIS)
+        texto_titulo = font_titulo.render("BIENVENIDO", True, NEGRO)
+        rect_titulo = texto_titulo.get_rect(center=(ANCHO // 2, 150))
+        ventana.blit(texto_titulo, rect_titulo)
 
         boton_jugar = pygame.Rect(0, 0, 200, 60)
         boton_ranking = pygame.Rect(0, 0, 200, 60)
@@ -38,9 +41,9 @@ def menu_principal(sonidos):
         boton_ranking.center = (ANCHO // 2, ALTO // 2)
         boton_salir.center = (ANCHO // 2, ALTO // 2 + 120)
 
-        dibujar_boton(ventana, boton_jugar, "Jugar", font, GRIS, NEGRO)
-        dibujar_boton(ventana, boton_ranking, "Ranking", font, GRIS, NEGRO)
-        dibujar_boton(ventana, boton_salir, "Salir", font, GRIS, NEGRO)
+        dibujar_boton(ventana, boton_jugar, "Jugar", fuente_principal, NEGRO, GRIS)
+        dibujar_boton(ventana, boton_ranking, "Ranking", fuente_principal, NEGRO, GRIS)
+        dibujar_boton(ventana, boton_salir, "Salir", fuente_principal, NEGRO, GRIS)
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -53,7 +56,7 @@ def menu_principal(sonidos):
                 if boton_ranking.collidepoint(evento.pos):
                     ranking = cargar_ranking()
                     ranking = ordenar_ranking(ranking)
-                    mostrar_ranking(ventana, font, ranking)
+                    mostrar_ranking(ventana, fuente_principal, ranking)
                 if boton_salir.collidepoint(evento.pos):
                     pygame.quit()
                     exit()
@@ -62,21 +65,27 @@ def menu_principal(sonidos):
 
 
 def mostrar_menu_dificultad(sonidos):
+    
     activo = True
     while activo:
-        ventana.fill(BLANCO)
+        ventana.fill(GRIS)
+        texto_titulo = font_titulo.render("DIFICULTADES", True, NEGRO)
+        rect_titulo = texto_titulo.get_rect(center=(ANCHO // 2, 150))
+        ventana.blit(texto_titulo, rect_titulo)
 
         boton_facil = pygame.Rect(0, 0, 200, 60)
         boton_medio = pygame.Rect(0, 0, 200, 60)
         boton_dificil = pygame.Rect(0, 0, 200, 60)
-
+        boton_volver = pygame.Rect(20, 700, 150, 50)
+        dibujar_boton(ventana, boton_volver, "Volver", fuente_principal, GRIS, NEGRO)
+        
         boton_facil.center = (ANCHO // 2, ALTO // 2 - 120)
         boton_medio.center = (ANCHO // 2, ALTO // 2)
         boton_dificil.center = (ANCHO // 2, ALTO // 2 + 120)
 
-        dibujar_boton(ventana, boton_facil, "Fácil", font, GRIS, NEGRO)
-        dibujar_boton(ventana, boton_medio, "Medio", font, GRIS, NEGRO)
-        dibujar_boton(ventana, boton_dificil, "Difícil", font, GRIS, NEGRO)
+        dibujar_boton(ventana, boton_facil, "Facil", fuente_principal, NEGRO, GRIS)
+        dibujar_boton(ventana, boton_medio, "Medio", fuente_principal, NEGRO, GRIS)
+        dibujar_boton(ventana, boton_dificil, "Difícil", fuente_principal, NEGRO, GRIS)
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -86,35 +95,52 @@ def mostrar_menu_dificultad(sonidos):
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 if boton_facil.collidepoint(evento.pos):
                     resultado = iniciar_juego(RUTA_FACIL, sonidos)
+
+                    if resultado is None: 
+                        return  menu_principal(sonidos)
+
                     nombre, tiempo, ruta_nonograma = resultado
                     ranking = cargar_ranking()
                     ranking = agregar_entrada(ranking, nombre, ruta_nonograma, tiempo)
                     ranking = ordenar_ranking(ranking)
                     guardar_ranking(ranking)
-    
+                    return menu_principal(sonidos)
+                
                 if boton_medio.collidepoint(evento.pos):
-                    resultado = iniciar_juego(RUTA_FACIL, sonidos)
+                    resultado = iniciar_juego(RUTA_MEDIO, sonidos)
+
+                    if resultado is None:  
+                        return menu_principal(sonidos) 
+
                     nombre, tiempo, ruta_nonograma = resultado
                     ranking = cargar_ranking()
                     ranking = agregar_entrada(ranking, nombre, ruta_nonograma, tiempo)
                     ranking = ordenar_ranking(ranking)
                     guardar_ranking(ranking)
+                    return menu_principal(sonidos)
                     
                 if boton_dificil.collidepoint(evento.pos):
-                    resultado = iniciar_juego(RUTA_FACIL, sonidos)
+                    resultado = iniciar_juego(RUTA_DIFICIL, sonidos)
+
+                    if resultado is None:  
+                        return menu_principal(sonidos) 
+
                     nombre, tiempo, ruta_nonograma = resultado
                     ranking = cargar_ranking()
                     ranking = agregar_entrada(ranking, nombre, ruta_nonograma, tiempo)
                     ranking = ordenar_ranking(ranking)
                     guardar_ranking(ranking)
-    
+                    return menu_principal(sonidos)
+
+                if boton_volver.collidepoint(evento.pos):
+                    return menu_principal(sonidos)
                     
         pygame.display.update()
-                
     
-                                    
+
+    
 def iniciar_juego(ruta_carpeta, sonidos):
-    nombre_juagor = pedir_nombre(ventana, font)
+    nombre_juagor = pedir_nombre(ventana, fuente_principal)
     ruta = elegir_nonograma_random(ruta_carpeta)
     jugador, resuelto = iniciar_partida(ruta)
     
@@ -123,6 +149,8 @@ def iniciar_juego(ruta_carpeta, sonidos):
     corazon_img = pygame.transform.scale(corazon_img, (60, 60)) 
     calavera_img = pygame.image.load("paquete/imagenes/calavera.png")
     calavera_img = pygame.transform.scale(calavera_img, (300, 300))
+    victoria_img = pygame.image.load("paquete/imagenes/victoria.png")
+    victoria_img = pygame.transform.scale(victoria_img, (ANCHO, ALTO))
 
 
     filas = len(resuelto)
@@ -147,7 +175,7 @@ def iniciar_juego(ruta_carpeta, sonidos):
 
     activo = True
     while activo:
-        ventana.fill(BLANCO)
+        ventana.fill(GRIS)
         dibujar_corazones(ventana, corazon_img, vidas)
 
         for evento in pygame.event.get():
@@ -182,8 +210,9 @@ def iniciar_juego(ruta_carpeta, sonidos):
                     
                     if comparar_nonogramas(jugador, resuelto):
                         tiempo_total = (pygame.time.get_ticks() - tiempo_inicio) // 1000
+                        pygame.mixer.music.stop()
                         sonidos["victoria"].play()
-                        mostrar_victoria(ventana, font_victoria)
+                        mostrar_victoria(ventana, victoria_img)
                         return nombre_juagor, tiempo_total, ruta
 
        
@@ -203,6 +232,7 @@ def iniciar_juego(ruta_carpeta, sonidos):
 
                     
                     if vidas == 0:
+                        pygame.mixer.music.stop()
                         sonidos["game_over"].play()
                         mostrar_game_over(ventana, font_game_over, calavera_img)
                         return
@@ -214,11 +244,15 @@ def iniciar_juego(ruta_carpeta, sonidos):
         dibujar_tablero(ventana, jugador, TAM_CELDA, filas, columnas,
                         offset_x, offset_y)
 
-        dibujar_pistas(ventana, font, pistas_filas, pistas_columnas,
+        dibujar_pistas(ventana, fuente_principal, pistas_filas, pistas_columnas,
                        TAM_CELDA, offset_x, offset_y)
 
         pygame.display.update()
                 
+    
+                
+    
+                                    
 
 
         
