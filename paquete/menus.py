@@ -19,7 +19,12 @@ RUTA_MEDIO = "nonogramas/medio/"
 RUTA_DIFICIL = "nonogramas/dificil/"
 
 
-def menu_principal(sonidos):
+def menu_principal(sonidos: dict) -> None:
+    """_summary_
+
+    Args:
+        sonidos (dict): diccionario con los sonidos del juego
+    """
 
     if not pygame.mixer.music.get_busy():
         pygame.mixer.music.load("paquete/musica/ambiente.mp3")
@@ -64,7 +69,13 @@ def menu_principal(sonidos):
         pygame.display.update()
 
 
-def mostrar_menu_dificultad(sonidos):
+def mostrar_menu_dificultad(sonidos: dict) -> None:
+    """_summary_
+
+    Args:
+        sonidos (dict): diccionario con los sonidos del juego
+
+    """
     
     activo = True
     while activo:
@@ -139,7 +150,16 @@ def mostrar_menu_dificultad(sonidos):
     
 
     
-def iniciar_juego(ruta_carpeta, sonidos):
+def iniciar_juego(ruta_carpeta: str, sonidos: dict) -> tuple:
+    """_summary_
+
+    Args:
+        ruta_carpeta (str): ruta a la carpeta que contiene los nonogramas
+        sonidos (dict): diccionario con los sonidos del juego
+
+    Returns:
+        tuple: tupla con el nombre del jugador, el tiempo total y la ruta del nonograma
+    """
     nombre_juagor = pedir_nombre(ventana, fuente_principal)
     ruta = elegir_nonograma_random(ruta_carpeta)
     jugador, resuelto = iniciar_partida(ruta)
